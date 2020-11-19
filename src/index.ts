@@ -54,7 +54,6 @@ export const parseRouteDefinition = (app: Express, path: string, route: Route, t
   handlers.push(handlerProcessor)
 
   // Add the route to express
-  console.log(`adding ${type} route ${path}`)
   return app[type](path, ...handlers)
 }
 
@@ -110,6 +109,5 @@ export const createRoutes = async (app: Express, dir?: string) => {
     })
   })
   setupValidationError(app)
-  console.log('finished parsing')
   return app
 }
