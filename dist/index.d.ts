@@ -7,7 +7,7 @@ export interface Route<Req = {}, Res = any, Params = {}, Query = {}> {
         params?: Partial<Record<keyof Params, Joi.Schema>>;
         query?: Partial<Record<keyof Query, Joi.Schema>>;
     };
-    handler?: (req: ExpReq<Params, Res, Req, Query>, res: ExpRes<Res>) => Promise<Res> | Promise<ExpRes<Res>>;
+    handler?: (req: ExpReq<Params, Res, Req, Query>, res: ExpRes<Res>) => Promise<Res | ExpRes<Res>> | Res | ExpRes<Res>;
 }
 export declare type RouteTypes = 'get' | 'post' | 'put' | 'delete' | 'options' | 'head' | 'connect' | 'trace' | 'patch';
 export declare type DefineRoutesOptions = Partial<Record<RouteTypes, ReturnType<typeof defineRoute>>>;
