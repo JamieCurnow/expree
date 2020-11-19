@@ -86,7 +86,6 @@ exports.parseRouteDefinition = function (app, path, route, type) {
     }); };
     handlers.push(handlerProcessor);
     // Add the route to express
-    console.log("adding " + type + " route " + path);
     return app[type].apply(app, __spreadArrays([path], handlers));
 };
 var appDir = path.dirname(require.main.filename);
@@ -154,7 +153,6 @@ exports.createRoutes = function (app, dir) { return __awaiter(void 0, void 0, vo
                     });
                 });
                 setupValidationError(app);
-                console.log('finished parsing');
                 return [2 /*return*/, app];
         }
     });
