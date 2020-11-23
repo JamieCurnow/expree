@@ -85,6 +85,7 @@ exports.parseRouteDefinition = function (app, path, route, type) {
                     return [2 /*return*/, res.headersSent || res.send(result)];
                 case 2:
                     e_1 = _a.sent();
+                    console.log(e_1);
                     return [2 /*return*/, res.headersSent || res.status(500).send('Server Error')];
                 case 3: return [2 /*return*/];
             }
