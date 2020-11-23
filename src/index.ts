@@ -48,8 +48,12 @@ export const parseRouteDefinition = (app: Express, path: string, route: Route, t
 
   // Add the actual handler to the end of the array
   const handlerProcessor: RequestHandler = async (req, res) => {
-    const result = await handler(req, res)
-    return res.headersSent || res.send(result)
+    try {
+      const result = await handler(req, res)
+      return res.headersSent || res.send(result)
+    } catch (e) {
+      return res.headersSent || res.status(500).send('Server Error')
+    }
   }
   handlers.push(handlerProcessor)
 
