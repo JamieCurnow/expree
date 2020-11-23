@@ -52,6 +52,7 @@ export const parseRouteDefinition = (app: Express, path: string, route: Route, t
       const result = await handler(req, res)
       return res.headersSent || res.send(result)
     } catch (e) {
+      console.log(e)
       return res.headersSent || res.status(500).send('Server Error')
     }
   }

@@ -74,13 +74,19 @@ exports.parseRouteDefinition = function (app, path, route, type) {
     }
     // Add the actual handler to the end of the array
     var handlerProcessor = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-        var result;
+        var result, e_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, handler(req, res)];
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    return [4 /*yield*/, handler(req, res)];
                 case 1:
                     result = _a.sent();
                     return [2 /*return*/, res.headersSent || res.send(result)];
+                case 2:
+                    e_1 = _a.sent();
+                    return [2 /*return*/, res.headersSent || res.status(500).send('Server Error')];
+                case 3: return [2 /*return*/];
             }
         });
     }); };
@@ -112,19 +118,19 @@ var getFilePaths = function (d) { return __awaiter(void 0, void 0, void 0, funct
 var validationError = function (err, req, res, next) {
     if (err instanceof express_validation_1.ValidationError) {
         delete err.name;
-        var e_1 = { code: 'validationError', message: 'Post body validation failed', details: {} };
+        var e_2 = { code: 'validationError', message: 'Post body validation failed', details: {} };
         var details = err.details;
         details.forEach(function (deet) {
             for (var key in deet) {
-                if (e_1.details[key]) {
-                    e_1.details[key] = e_1.details[key] + (" | " + deet[key]);
+                if (e_2.details[key]) {
+                    e_2.details[key] = e_2.details[key] + (" | " + deet[key]);
                 }
                 else {
-                    e_1.details[key] = deet[key];
+                    e_2.details[key] = deet[key];
                 }
             }
         });
-        return res.status(400).send(e_1);
+        return res.status(400).send(e_2);
     }
     return res.status(500).send(err);
 };
