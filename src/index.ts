@@ -108,7 +108,6 @@ export const createRoutes = async (app: Express, dir?: string) => {
     const bIsDynamic = b.includes(':')
     return aIsDynamic && bIsDynamic ? 0 : aIsDynamic ? 1 : -1
   })
-  console.log({ filePaths, sortedFilePaths })
   sortedFilePaths.forEach((path) => {
     const routePath = path.split(d).join('').split('.').slice(0, -1).join('.').split('/index').join('')
     const definition = require(path)
