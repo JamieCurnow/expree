@@ -35,12 +35,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __spreadArrays = (this && this.__spreadArrays) || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
+var __spreadArray = (this && this.__spreadArray) || function (to, from) {
+    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
+        to[j] = from[i];
+    return to;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createRoutes = exports.parseRouteDefinition = exports.defineRoute = exports.defineRoutes = void 0;
@@ -49,10 +47,12 @@ var fs = require("fs");
 var Joi = require("joi");
 var path = require("path");
 var fsPromises = fs.promises;
-exports.defineRoutes = function (opts) { return opts; };
-exports.defineRoute = function (opts) { return opts; };
+var defineRoutes = function (opts) { return opts; };
+exports.defineRoutes = defineRoutes;
+var defineRoute = function (opts) { return opts; };
+exports.defineRoute = defineRoute;
 // Parsing
-exports.parseRouteDefinition = function (app, path, route, type) {
+var parseRouteDefinition = function (app, path, route, type) {
     var handler = route.handler, validate = route.validate, middleware = route.middleware;
     // Error if no handler
     if (!handler)
@@ -93,8 +93,9 @@ exports.parseRouteDefinition = function (app, path, route, type) {
     }); };
     handlers.push(handlerProcessor);
     // Add the route to express
-    return app[type].apply(app, __spreadArrays([path], handlers));
+    return app[type].apply(app, __spreadArray([path], handlers));
 };
+exports.parseRouteDefinition = parseRouteDefinition;
 var appDir = path.dirname(require.main.filename);
 var defaultDir = path.join(appDir, 'routes');
 var getFilePaths = function (d) { return __awaiter(void 0, void 0, void 0, function () {
@@ -138,16 +139,24 @@ var validationError = function (err, req, res, next) {
 var setupValidationError = function (app) {
     app.use(validationError);
 };
-exports.createRoutes = function (app, dir) { return __awaiter(void 0, void 0, void 0, function () {
-    var d, filePaths;
+var createRoutes = function (app, dir) { return __awaiter(void 0, void 0, void 0, function () {
+    var d, filePaths, sortedFilePaths;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 d = dir || defaultDir;
-                return [4 /*yield*/, getFilePaths(d)];
+                return [4 /*yield*/, getFilePaths(d)
+                    // sort the paths so dynamic routes come last
+                ];
             case 1:
                 filePaths = _a.sent();
-                filePaths.forEach(function (path) {
+                sortedFilePaths = filePaths.sort(function (a, b) {
+                    var aIsDynamic = a.includes(':');
+                    var bIsDynamic = b.includes(':');
+                    return aIsDynamic && bIsDynamic ? 0 : aIsDynamic ? 1 : -1;
+                });
+                console.log({ filePaths: filePaths, sortedFilePaths: sortedFilePaths });
+                sortedFilePaths.forEach(function (path) {
                     var routePath = path.split(d).join('').split('.').slice(0, -1).join('.').split('/index').join('');
                     var definition = require(path);
                     var isDefault = Object.prototype.hasOwnProperty.call(definition, 'default');
@@ -164,3 +173,4 @@ exports.createRoutes = function (app, dir) { return __awaiter(void 0, void 0, vo
         }
     });
 }); };
+exports.createRoutes = createRoutes;

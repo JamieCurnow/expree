@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "express": "^4.17.1",
-    "express-validation": "^3.0.6"
+    "express-validation": "^3.0.8"
   },
   "devDependencies": {
     "typescript": "^4.0.5"

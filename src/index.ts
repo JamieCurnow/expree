@@ -102,7 +102,14 @@ const setupValidationError = (app: Express) => {
 export const createRoutes = async (app: Express, dir?: string) => {
   const d: string = dir || defaultDir
   const filePaths = await getFilePaths(d)
-  filePaths.forEach((path) => {
+  // sort the paths so dynamic routes come last
+  const sortedFilePaths = filePaths.sort((a, b) => {
+    const aIsDynamic = a.includes(':')
+    const bIsDynamic = b.includes(':')
+    return aIsDynamic && bIsDynamic ? 0 : aIsDynamic ? 1 : -1
+  })
+  console.log({ filePaths, sortedFilePaths })
+  sortedFilePaths.forEach((path) => {
     const routePath = path.split(d).join('').split('.').slice(0, -1).join('.').split('/index').join('')
     const definition = require(path)
     const isDefault = Object.prototype.hasOwnProperty.call(definition, 'default')
