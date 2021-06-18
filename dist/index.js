@@ -155,7 +155,6 @@ var createRoutes = function (app, dir) { return __awaiter(void 0, void 0, void 0
                     var bIsDynamic = b.includes(':');
                     return aIsDynamic && bIsDynamic ? 0 : aIsDynamic ? 1 : -1;
                 });
-                console.log({ filePaths: filePaths, sortedFilePaths: sortedFilePaths });
                 sortedFilePaths.forEach(function (path) {
                     var routePath = path.split(d).join('').split('.').slice(0, -1).join('.').split('/index').join('');
                     var definition = require(path);
