@@ -68,8 +68,7 @@ const defaultDir = path.join(appDir, 'routes')
 const getFilePaths = async (d: string): Promise<string[]> => {
   // get all files/folders in dir
   const list = await fsPromises.readdir(d, { withFileTypes: true })
-  const filteredFiles = list.filter(x => !x.name.startsWith('_'))
-  const filesArr = await Promise.all(filteredFiles.map(x => {
+  const filesArr = await Promise.all(list.map(x => {
     const res = path.resolve(d, x.name)
     return x.isDirectory() ? getFilePaths(res) : [res]
   }))
@@ -104,12 +103,20 @@ export const createRoutes = async (app: Express, dir?: string) => {
   const filePaths = await getFilePaths(d)
   // sort the paths so dynamic routes come last
   const sortedFilePaths = filePaths.sort((a, b) => {
-    const aIsDynamic = a.includes(':')
-    const bIsDynamic = b.includes(':')
+    const aIsDynamic = a.includes(':') || a.includes('_')
+    const bIsDynamic = b.includes(':') || b.includes('_')
     return aIsDynamic && bIsDynamic ? 0 : aIsDynamic ? 1 : -1
   })
   sortedFilePaths.forEach((path) => {
-    const routePath = path.split(d).join('').split('.').slice(0, -1).join('.').split('/index').join('')
+    const routePath = path
+      // remove directory path
+      .split(d).join('')
+      // Remove file extension
+      .split('.').slice(0, -1).join('.')
+      // remove index
+      .split('/index').join('')
+      // replace /_ with /: for dynamic routes
+      .split('/_').join('/:')
     const definition = require(path)
     const isDefault = Object.prototype.hasOwnProperty.call(definition, 'default')
     const routes: ReturnType<typeof defineRoutes> = isDefault ? definition.default : definition

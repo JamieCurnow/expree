@@ -58,3 +58,9 @@ export const post = defineRoute<Req, Res, Params>({
     return `${post}-${data + 1}`
   }
 })
+
+export const get = defineRoute<{}, string, Params>({
+  handler({ params }) {
+    return `Hello ${params.variable}`
+  }
+})

@@ -9,7 +9,7 @@ import { defineRoutes, defineRoute } from '../../../../src'
 // import { defineRoute } from 'expree'
 
 interface Params {
-  variable: string
+  variable?: string
 }
 
 // Some route types at this path have the same validation
@@ -24,7 +24,7 @@ export default defineRoutes({
       // Do some stuff
       console.log(variable)
 
-      return 'Here you go!'
+      return `Here you go! ${variable}`
     }
   }),
   post: defineRoute<{}, string, Params>({
