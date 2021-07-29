@@ -131,7 +131,7 @@ var getFilePaths = function (d) { return __awaiter(void 0, void 0, void 0, funct
                     }))];
             case 2:
                 filesArr = _b.sent();
-                return [2 /*return*/, (_a = Array.prototype).concat.apply(_a, filesArr)];
+                return [2 /*return*/, (_a = Array.prototype).concat.apply(_a, filesArr).map(function (x) { return path.resolve(x); })];
         }
     });
 }); };
@@ -163,11 +163,10 @@ var createRoutes = function (app, dir) { return __awaiter(void 0, void 0, void 0
         switch (_a.label) {
             case 0:
                 d = dir || defaultDir;
-                return [4 /*yield*/, getFilePaths(d)
-                    // sort the paths so dynamic routes come last
-                ];
+                return [4 /*yield*/, getFilePaths(d)];
             case 1:
                 filePaths = _a.sent();
+                console.log({ filePaths: filePaths });
                 sortedFilePaths = filePaths.sort(function (a, b) {
                     var aIsDynamic = a.includes(':') || a.includes('_');
                     var bIsDynamic = b.includes(':') || b.includes('_');

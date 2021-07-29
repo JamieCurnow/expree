@@ -72,7 +72,7 @@ const getFilePaths = async (d: string): Promise<string[]> => {
     const res = path.resolve(d, x.name)
     return x.isDirectory() ? getFilePaths(res) : [res]
   }))
-  return Array.prototype.concat(...filesArr)
+  return Array.prototype.concat(...filesArr).map(x => path.resolve(x))
 }
 
 const validationError: ErrorRequestHandler = (err, req, res, next) => {
