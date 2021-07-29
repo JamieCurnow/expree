@@ -186,7 +186,6 @@ var createRoutes = function (app, dir) { return __awaiter(void 0, void 0, void 0
                         .split('/index').join('')
                         // replace /_ with /: for dynamic routes
                         .split('/_').join('/:');
-                    console.log('Registerring route', { route: routePath, filePath: p });
                     var definition = require(p);
                     var isDefault = Object.prototype.hasOwnProperty.call(definition, 'default');
                     var routes = isDefault ? definition.default : definition;

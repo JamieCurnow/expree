@@ -120,7 +120,6 @@ export const createRoutes = async (app: Express, dir?: string) => {
       .split('/index').join('')
       // replace /_ with /: for dynamic routes
       .split('/_').join('/:')
-    console.log('Registerring route', { route: routePath, filePath: p })
     const definition = require(p)
     const isDefault = Object.prototype.hasOwnProperty.call(definition, 'default')
     const routes: ReturnType<typeof defineRoutes> = isDefault ? definition.default : definition
