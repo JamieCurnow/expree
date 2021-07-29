@@ -2,8 +2,7 @@ import { Express, RequestHandler, ErrorRequestHandler, Request as ExpReq, Respon
 import { validate as validator, ValidationError } from 'express-validation'
 import * as fs from 'fs'
 import * as Joi from 'joi'
-import * as p from 'path'
-const path = p.posix
+import * as path from 'path'
 const fsPromises = fs.promises
 
 export interface Route<Req = {}, Res = any, Params = {}, Query = {}> {
@@ -73,7 +72,7 @@ const getFilePaths = async (d: string): Promise<string[]> => {
     const res = path.resolve(d, x.name)
     return x.isDirectory() ? getFilePaths(res) : [res]
   }))
-  return Array.prototype.concat(...filesArr).map(x => path.resolve(x))
+  return Array.prototype.concat(...filesArr).map(x => x.split(path.sep).join(path.posix.sep))
 }
 
 const validationError: ErrorRequestHandler = (err, req, res, next) => {

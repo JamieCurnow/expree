@@ -64,8 +64,7 @@ exports.createRoutes = exports.parseRouteDefinition = exports.defineRoute = expo
 var express_validation_1 = require("express-validation");
 var fs = __importStar(require("fs"));
 var Joi = __importStar(require("joi"));
-var p = __importStar(require("path"));
-var path = p.posix;
+var path = __importStar(require("path"));
 var fsPromises = fs.promises;
 var defineRoutes = function (opts) { return opts; };
 exports.defineRoutes = defineRoutes;
@@ -132,7 +131,7 @@ var getFilePaths = function (d) { return __awaiter(void 0, void 0, void 0, funct
                     }))];
             case 2:
                 filesArr = _b.sent();
-                return [2 /*return*/, (_a = Array.prototype).concat.apply(_a, filesArr).map(function (x) { return path.resolve(x); })];
+                return [2 /*return*/, (_a = Array.prototype).concat.apply(_a, filesArr).map(function (x) { return x.split(path.sep).join(path.posix.sep); })];
         }
     });
 }); };
