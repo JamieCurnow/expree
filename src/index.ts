@@ -101,6 +101,7 @@ const setupValidationError = (app: Express) => {
 export const createRoutes = async (app: Express, dir?: string) => {
   const d: string = dir || defaultDir
   const filePaths = await getFilePaths(d)
+  console.log({ filePaths })
   // sort the paths so dynamic routes come last
   const sortedFilePaths = filePaths.sort((a, b) => {
     const aIsDynamic = a.includes(':') || a.includes('_')
