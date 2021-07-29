@@ -1,4 +1,23 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -43,9 +62,9 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createRoutes = exports.parseRouteDefinition = exports.defineRoute = exports.defineRoutes = void 0;
 var express_validation_1 = require("express-validation");
-var fs = require("fs");
-var Joi = require("joi");
-var path = require("path");
+var fs = __importStar(require("fs"));
+var Joi = __importStar(require("joi"));
+var path = __importStar(require("path"));
 var fsPromises = fs.promises;
 var defineRoutes = function (opts) { return opts; };
 exports.defineRoutes = defineRoutes;
@@ -99,15 +118,14 @@ exports.parseRouteDefinition = parseRouteDefinition;
 var appDir = path.dirname(require.main.filename);
 var defaultDir = path.join(appDir, 'routes');
 var getFilePaths = function (d) { return __awaiter(void 0, void 0, void 0, function () {
-    var list, filteredFiles, filesArr;
+    var list, filesArr;
     var _a;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0: return [4 /*yield*/, fsPromises.readdir(d, { withFileTypes: true })];
             case 1:
                 list = _b.sent();
-                filteredFiles = list.filter(function (x) { return !x.name.startsWith('_'); });
-                return [4 /*yield*/, Promise.all(filteredFiles.map(function (x) {
+                return [4 /*yield*/, Promise.all(list.map(function (x) {
                         var res = path.resolve(d, x.name);
                         return x.isDirectory() ? getFilePaths(res) : [res];
                     }))];
@@ -151,12 +169,20 @@ var createRoutes = function (app, dir) { return __awaiter(void 0, void 0, void 0
             case 1:
                 filePaths = _a.sent();
                 sortedFilePaths = filePaths.sort(function (a, b) {
-                    var aIsDynamic = a.includes(':');
-                    var bIsDynamic = b.includes(':');
+                    var aIsDynamic = a.includes(':') || a.includes('_');
+                    var bIsDynamic = b.includes(':') || b.includes('_');
                     return aIsDynamic && bIsDynamic ? 0 : aIsDynamic ? 1 : -1;
                 });
                 sortedFilePaths.forEach(function (path) {
-                    var routePath = path.split(d).join('').split('.').slice(0, -1).join('.').split('/index').join('');
+                    var routePath = path
+                        // remove directory path
+                        .split(d).join('')
+                        // Remove file extension
+                        .split('.').slice(0, -1).join('.')
+                        // remove index
+                        .split('/index').join('')
+                        // replace /_ with /: for dynamic routes
+                        .split('/_').join('/:');
                     var definition = require(path);
                     var isDefault = Object.prototype.hasOwnProperty.call(definition, 'default');
                     var routes = isDefault ? definition.default : definition;
