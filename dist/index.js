@@ -64,7 +64,8 @@ exports.createRoutes = exports.parseRouteDefinition = exports.defineRoute = expo
 var express_validation_1 = require("express-validation");
 var fs = __importStar(require("fs"));
 var Joi = __importStar(require("joi"));
-var path = __importStar(require("path"));
+var p = __importStar(require("path"));
+var path = p.posix;
 var fsPromises = fs.promises;
 var defineRoutes = function (opts) { return opts; };
 exports.defineRoutes = defineRoutes;

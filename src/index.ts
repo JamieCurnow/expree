@@ -2,7 +2,8 @@ import { Express, RequestHandler, ErrorRequestHandler, Request as ExpReq, Respon
 import { validate as validator, ValidationError } from 'express-validation'
 import * as fs from 'fs'
 import * as Joi from 'joi'
-import * as path from 'path'
+import * as p from 'path'
+const path = p.posix
 const fsPromises = fs.promises
 
 export interface Route<Req = {}, Res = any, Params = {}, Query = {}> {
