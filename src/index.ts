@@ -72,7 +72,7 @@ const getFilePaths = async (d: string): Promise<string[]> => {
     const res = path.resolve(d, x.name)
     return x.isDirectory() ? getFilePaths(res) : [res]
   }))
-  return Array.prototype.concat(...filesArr).map(x => x.split(path.sep).join(path.posix.sep))
+  return Array.prototype.concat(...filesArr)
 }
 
 const validationError: ErrorRequestHandler = (err, req, res, next) => {
@@ -101,24 +101,27 @@ const setupValidationError = (app: Express) => {
 export const createRoutes = async (app: Express, dir?: string) => {
   const d: string = dir || defaultDir
   const filePaths = await getFilePaths(d)
-  console.log({ filePaths })
   // sort the paths so dynamic routes come last
   const sortedFilePaths = filePaths.sort((a, b) => {
     const aIsDynamic = a.includes(':') || a.includes('_')
     const bIsDynamic = b.includes(':') || b.includes('_')
     return aIsDynamic && bIsDynamic ? 0 : aIsDynamic ? 1 : -1
   })
-  sortedFilePaths.forEach((path) => {
-    const routePath = path
+  const postixDir = d.split(path.sep).join(path.posix.sep)
+  sortedFilePaths.forEach((p) => {
+    const routePath = p
+      // make sure we're in posix
+      .split(path.sep).join(path.posix.sep)
       // remove directory path
-      .split(d).join('')
+      .split(postixDir).join('')
       // Remove file extension
       .split('.').slice(0, -1).join('.')
       // remove index
       .split('/index').join('')
       // replace /_ with /: for dynamic routes
       .split('/_').join('/:')
-    const definition = require(path)
+    console.log('Registerring route', { route: routePath, filePath: p })
+    const definition = require(p)
     const isDefault = Object.prototype.hasOwnProperty.call(definition, 'default')
     const routes: ReturnType<typeof defineRoutes> = isDefault ? definition.default : definition
     const supportedKeys: RouteTypes[] = ['delete', 'get', 'post', 'put']

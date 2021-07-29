@@ -131,7 +131,7 @@ var getFilePaths = function (d) { return __awaiter(void 0, void 0, void 0, funct
                     }))];
             case 2:
                 filesArr = _b.sent();
-                return [2 /*return*/, (_a = Array.prototype).concat.apply(_a, filesArr).map(function (x) { return x.split(path.sep).join(path.posix.sep); })];
+                return [2 /*return*/, (_a = Array.prototype).concat.apply(_a, filesArr)];
         }
     });
 }); };
@@ -158,31 +158,36 @@ var setupValidationError = function (app) {
     app.use(validationError);
 };
 var createRoutes = function (app, dir) { return __awaiter(void 0, void 0, void 0, function () {
-    var d, filePaths, sortedFilePaths;
+    var d, filePaths, sortedFilePaths, postixDir;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 d = dir || defaultDir;
-                return [4 /*yield*/, getFilePaths(d)];
+                return [4 /*yield*/, getFilePaths(d)
+                    // sort the paths so dynamic routes come last
+                ];
             case 1:
                 filePaths = _a.sent();
-                console.log({ filePaths: filePaths });
                 sortedFilePaths = filePaths.sort(function (a, b) {
                     var aIsDynamic = a.includes(':') || a.includes('_');
                     var bIsDynamic = b.includes(':') || b.includes('_');
                     return aIsDynamic && bIsDynamic ? 0 : aIsDynamic ? 1 : -1;
                 });
-                sortedFilePaths.forEach(function (path) {
-                    var routePath = path
+                postixDir = d.split(path.sep).join(path.posix.sep);
+                sortedFilePaths.forEach(function (p) {
+                    var routePath = p
+                        // make sure we're in posix
+                        .split(path.sep).join(path.posix.sep)
                         // remove directory path
-                        .split(d).join('')
+                        .split(postixDir).join('')
                         // Remove file extension
                         .split('.').slice(0, -1).join('.')
                         // remove index
                         .split('/index').join('')
                         // replace /_ with /: for dynamic routes
                         .split('/_').join('/:');
-                    var definition = require(path);
+                    console.log('Registerring route', { route: routePath, filePath: p });
+                    var definition = require(p);
                     var isDefault = Object.prototype.hasOwnProperty.call(definition, 'default');
                     var routes = isDefault ? definition.default : definition;
                     var supportedKeys = ['delete', 'get', 'post', 'put'];
