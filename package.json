@@ -12,7 +12,7 @@
   "scripts": {
     "build": "rimraf dist && tsc -d",
     "watch": "tsc --watch -d",
-    "test": "vitest",
+    "test": "vitest run",
     "build:example": "tsc -p tsconfig-example-app.json",
     "serve:example": "node example-app-dist/example-app",
     "dev": "nodemon --watch ./src --watch ./example-app --exec \"rimraf example-app-dist && npm run build:example && npm run serve:example\""
