@@ -6,3 +6,4 @@ eslintrc.json
 .prettierrc
 tsconfig.json
 yarn.lock
+tests
