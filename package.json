@@ -1,6 +1,6 @@
 {
   "name": "expree",
-  "version": "0.1.6",
+  "version": "1.0.0",
   "description": "A better way to Express",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,16 +10,21 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "build": "tsc -d",
+    "build": "rimraf dist && tsc -d",
     "watch": "tsc --watch -d",
-    "test": "tsc"
+    "test": "vitest",
+    "build:example": "tsc -p tsconfig-example-app.json",
+    "serve:example": "node example-app-dist/example-app",
+    "dev": "nodemon --watch ./src --watch ./example-app --exec \"rimraf example-app-dist && npm run build:example && npm run serve:example\""
   },
   "dependencies": {
     "express": "^4.17.1",
     "express-validation": "^3.0.8"
   },
   "devDependencies": {
+    "rimraf": "^3.0.2",
     "ts-node": "^10.1.0",
-    "typescript": "^4.0.5"
+    "typescript": "^4.0.5",
+    "vitest": "^0.9.4"
   }
 }

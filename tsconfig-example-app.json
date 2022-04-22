@@ -2,18 +2,18 @@
   "compilerOptions": {
     "allowJs": true,
     "checkJs": true,
-    "outDir": "dist",
+    "outDir": "example-app-dist",
     "target": "ES5",
     "noImplicitAny": true,
     "moduleResolution": "node",
-    "esModuleInterop": true,
-    "strict": true,
+    "esModuleInterop": true
     // "lib": [
     //   "es2019"
     // ]
   },
   "include": [
-    "./src/**/*"
+    "./src/**/*",
+    "./example-app/**/*"
   ],
   "exclude": [
     "node_modules"
