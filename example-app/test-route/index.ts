@@ -1,23 +1,31 @@
 import { defineRoute } from '../../src'
+import { z } from 'zod'
 
-interface Req {
-  requiredThing: boolean
-}
+const ReqBodySchema = z.object({
+  requiredThing: z.boolean(),
+  anotherThing: z.string(),
+  someObject: z
+    .object({
+      someKeyInObject: z.string()
+    })
+    .required()
+}).strict()
 
-export const post = defineRoute<Req, string>({
-  validate: (joi) => ({
-    body: {
-      requiredThing: joi.boolean().required(),
-      anotherThing: joi.string().required(),
-      someObject: joi
-        .object({
-          someKeyInObject: joi.string().required()
-        })
-        .required()
-    },
-    query: {
-      something: joi.string().required()
-    }
+type ReqBody = z.infer<typeof ReqBodySchema>
+
+const ResSchema = z.string()
+type Res = z.infer<typeof ResSchema>
+
+const QuerySchema = z.object({
+  something: z.string()
+}).strict()
+
+type Query = z.infer<typeof QuerySchema>
+
+export const post = defineRoute<ReqBody, Res, {}, Query>({
+  validate: () => ({
+    body: ReqBodySchema,
+    query: QuerySchema
   }),
 
   async handler(req, res) {

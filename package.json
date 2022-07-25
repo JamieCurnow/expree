@@ -18,8 +18,10 @@
     "dev": "nodemon --watch ./src --watch ./example-app --exec \"rimraf example-app-dist && npm run build:example && npm run serve:example\""
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^1.2.3",
     "express": "^4.17.1",
-    "express-validation": "^3.0.8"
+    "zod": "^3.17.10",
+    "zod-express-middleware": "^1.4.0"
   },
   "devDependencies": {
     "rimraf": "^3.0.2",

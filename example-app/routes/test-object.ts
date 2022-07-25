@@ -1,9 +1,9 @@
 /**
- * Another way to write routes for a path is to 
+ * Another way to write routes for a path is to
  * export defineRoute functions as consts named by their request type. eg:
  * export const post = defineRoute({ ... })
  * export const get = defineRoute({ ... })
- * 
+ *
  * See ./test-default for a more detailed explanation of the defineRoute function
  */
 
@@ -13,7 +13,7 @@ import { defineRoute } from '../../src'
 
 // POST:
 // '/test-object'
-interface PostReq { userId?: string }
+interface PostReq { userId: string }
 type PostRes = string
 
 export const post = defineRoute<PostReq, PostRes>({

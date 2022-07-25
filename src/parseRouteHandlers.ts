@@ -1,6 +1,5 @@
-import { Express, RequestHandler } from 'express'
-import { validate as validator } from 'express-validation'
-import Joi from 'joi'
+import { RequestHandler } from 'express'
+import { validateRequest } from 'zod-express-middleware'
 
 import { RouteDefinition } from './types'
 
@@ -15,13 +14,10 @@ export const parseRouteHandlers = (route: RouteDefinition): RequestHandler[] => 
 
   // Add validation middleware first
   if (typeof validate === 'function') {
-    const validationObj = validate(Joi)
-    const validationSchema = {
-      body: validationObj.body ? Joi.object(validationObj.body) : undefined,
-      query: validationObj.query ? Joi.object(validationObj.query) : undefined,
-      params: validationObj.params ? Joi.object(validationObj.params) : undefined
-    }
-    const validationHandler = validator(validationSchema, { context: true }, { abortEarly: false })
+    const validationObj = validate()
+
+    const validationHandler = validateRequest(validationObj)
+
     handlers.push(validationHandler)
   }
 
