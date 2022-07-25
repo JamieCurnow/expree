@@ -1,9 +1,11 @@
+import { OpenAPIGenerator, OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
 import { Express } from 'express'
 import * as path from 'path'
 import { getFilePaths } from './getFilePaths'
 import { makeRoutePathFromFilePath } from './makeRoutePathFromFilePath'
 import { parseRouteHandlers } from './parseRouteHandlers'
 import { DefineRoutesOptions, RouteTypes } from './types'
+import swaggerUi from 'swagger-ui-express'
 
 /** Options for route locations and prefixes */
 interface CreateRoutesOption {
@@ -16,9 +18,30 @@ interface CreateRoutesOption {
    * The prefix to add to all routes. Defaults to '/'.
    */
   routePrefix?: string
+  /**
+   * The swagger docs definition generator. Uses: https://github.com/asteasolutions/zod-to-openapi
+   * @example
+   *
+   * ```ts
+   * generateSwaggerDocument(generator) {
+   *   return generator.generateDocument({
+   *    openapi: '3.0.0',
+   *    info: {
+   *      version: '1.0.0',
+   *        title: 'My API',
+   *        description: 'This is the API'
+   *    }
+   *  })
+   * }
+   * ```
+   */
+  generateSwaggerDocument?: (generator: OpenAPIGenerator) => ReturnType<OpenAPIGenerator['generateDocument']>
+  swaggerDocsPath?: string
 }
 
-const getRoutesDirectories = (opts: CreateRoutesOption[]) => {
+type CreateRoutesOptionWithSwagger = CreateRoutesOption & { swaggerRegistry?: OpenAPIRegistry }
+
+const getRoutesDirectories = (opts: CreateRoutesOptionWithSwagger[]) => {
   // the absolute root dir of the app
   const appDir = path.dirname(require?.main?.filename || __dirname)
 
@@ -30,7 +53,8 @@ const getRoutesDirectories = (opts: CreateRoutesOption[]) => {
       routesDirectory,
       routePrefix: x.routePrefix || '/',
       // get the postix directory so it works in windows and unix
-      postixDir: routesDirectory.split(path.sep).join(path.posix.sep)
+      postixDir: routesDirectory.split(path.sep).join(path.posix.sep),
+      registry: x.swaggerRegistry
     }
   })
 }
@@ -38,13 +62,20 @@ const getRoutesDirectories = (opts: CreateRoutesOption[]) => {
 /** Create all the routes and register them in the express app */
 export const createRoutes = async (app: Express, options?: CreateRoutesOption | CreateRoutesOption[]) => {
   // make sure options are always an array with the default
-  let optionsArray: CreateRoutesOption[] = []
+  let optionsArray: Array<CreateRoutesOptionWithSwagger> = []
 
   if (options) {
     optionsArray = Array.isArray(options) ? options : [options]
   } else {
     optionsArray = [{ routesDirectory: 'routes', routePrefix: '/' }]
   }
+
+  // Add a swagger registry to each options
+  optionsArray.forEach((option) => {
+    if (typeof option.generateSwaggerDocument === 'function') {
+      option.swaggerRegistry = new OpenAPIRegistry()
+    }
+  })
 
   // get all the file paths
   const directories = getRoutesDirectories(optionsArray)
@@ -55,7 +86,8 @@ export const createRoutes = async (app: Express, options?: CreateRoutesOption | 
         routesDirectory: x.routesDirectory,
         routePrefix: x.routePrefix,
         filePath: path,
-        postixDir: x.postixDir
+        postixDir: x.postixDir,
+        registry: x.registry
       }))
     })
   )
@@ -65,6 +97,7 @@ export const createRoutes = async (app: Express, options?: CreateRoutesOption | 
     routePrefix: string
     filePath: string
     postixDir: string
+    registry?: OpenAPIRegistry
   }[]
 
   // sort the paths so dynamic routes come last - this is important so that
@@ -106,10 +139,30 @@ export const createRoutes = async (app: Express, options?: CreateRoutesOption | 
       if (route) {
         // parse the handlers
         const handlers = parseRouteHandlers(route)
+        //if the route has swagger docs add it to the registry
+        if (typeof route.swaggerZod === 'function') {
+          if (p.registry) {
+            route.swaggerZod(p.registry)
+          } else {
+            console.error(
+              `route.swaggerZod was defined for path "${routePath}" but no generateSwaggerDocument function was found in the createRoutes option`
+            )
+          }
+        }
         // add them to express
         app[key](routePath, ...handlers)
       }
     })
+  })
+
+  optionsArray.forEach((option) => {
+    if (typeof option.generateSwaggerDocument === 'function' && option.swaggerRegistry) {
+      console.log(option)
+      const generator = new OpenAPIGenerator(option.swaggerRegistry.definitions)
+      const document = option.generateSwaggerDocument(generator)
+      // app.use(option.swaggerDocsPath || '/docs', swaggerUi.serve, swaggerUi.setup(document))
+      app.use(option.swaggerDocsPath || '/docs', swaggerUi.serveFiles(document), swaggerUi.setup(document))
+    }
   })
 
   // return express

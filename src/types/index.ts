@@ -1,3 +1,4 @@
+import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
 import { RequestHandler, Request as ExpressRequest, Response as ExpressResponse } from 'express'
 
 import { AnyZodObject } from 'zod'
@@ -31,6 +32,12 @@ export interface RouteDefinition<Req = {}, Res = any, Params = {}, Query = {}> {
     req: ExpressRequest<Params, Res, Req, Query>,
     res: ExpressResponse<Res>
   ) => Promise<Res | ExpressResponse<Res>> | Res | ExpressResponse<Res>
+
+  /**
+   * Use the registry to create a swagger doc for this endpoint.
+   * See: https://github.com/asteasolutions/zod-to-openapi#defining-routes
+   */
+  swaggerZod?: (registry: OpenAPIRegistry) => void
 }
 
 /** Just http method route types in a string union */
