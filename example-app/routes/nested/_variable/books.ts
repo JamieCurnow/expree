@@ -8,13 +8,16 @@ import { defineRoutes, defineRoute } from '../../../../src'
 // Or in real life:
 // import { defineRoute } from 'expree'
 
-interface Params {
-  variable?: string
-}
+import { z } from 'zod'
+
+const ParamsSchema = z.object({
+  variable: z.string().optional()
+})
+
+type Params = z.infer<typeof ParamsSchema>
 
 // Some route types at this path have the same validation
-import Joi from 'joi'
-const validate = (joi: Joi.Root) => ({ params: { variable: joi.string().required() } })
+const validate = () => ({ params: ParamsSchema })
 
 export default defineRoutes({
   get: defineRoute<{}, string, Params>({
@@ -30,7 +33,7 @@ export default defineRoutes({
   post: defineRoute<{}, string, Params>({
     validate,
     async handler({ params }) {
-      // we can guarentee variable is there due to the validation function
+      // we can guarantee variable is there due to the validation function
       const { variable } = params
 
       // Do some stuff
@@ -42,7 +45,7 @@ export default defineRoutes({
   put: defineRoute<{}, string, Params>({
     validate,
     async handler({ params }) {
-      // we can guarentee variable is there due to the validation function
+      // we can guarantee variable is there due to the validation function
       const { variable } = params
 
       // Do some stuff
@@ -54,7 +57,7 @@ export default defineRoutes({
   delete: defineRoute<{}, string, Params>({
     validate,
     async handler({ params }) {
-      // we can guarentee variable is there due to the validation function
+      // we can guarantee variable is there due to the validation function
       const { variable } = params
 
       // Do some stuff

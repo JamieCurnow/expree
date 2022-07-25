@@ -4,7 +4,6 @@ import { getFilePaths } from './getFilePaths'
 import { makeRoutePathFromFilePath } from './makeRoutePathFromFilePath'
 import { parseRouteHandlers } from './parseRouteHandlers'
 import { DefineRoutesOptions, RouteTypes } from './types'
-import { validationErrorHandler } from './validationErrorHandler'
 
 /** Options for route locations and prefixes */
 interface CreateRoutesOption {
@@ -112,9 +111,6 @@ export const createRoutes = async (app: Express, options?: CreateRoutesOption | 
       }
     })
   })
-
-  // set up the validation error handling so it returns nicer errors
-  app.use(validationErrorHandler)
 
   // return express
   return app

@@ -1,6 +1,6 @@
-import { RequestHandler, Request as ExpressRequest, Response as ExpressRespons } from 'express'
+import { RequestHandler, Request as ExpressRequest, Response as ExpressResponse } from 'express'
 
-import Joi from 'joi'
+import { AnyZodObject } from 'zod'
 
 /**
  * The definition of a single route.
@@ -11,15 +11,15 @@ export interface RouteDefinition<Req = {}, Res = any, Params = {}, Query = {}> {
    */
   middleware?: RequestHandler[]
   /**
-   * Add Joi validation to the route
+   * Add Zod validation to the route
    */
-  validate?: (joi: typeof Joi) => {
-    /** Validation for the body */
-    body?: Partial<Record<keyof Req, Joi.Schema>>
-    /** Validation for the route params */
-    params?: Partial<Record<keyof Params, Joi.Schema>>
-    /** Validation for the route query params */
-    query?: Partial<Record<keyof Query, Joi.Schema>>
+  validate?: () => {
+    /** Zod schema for the body */
+    body?: AnyZodObject
+    /**  Zod schema for the route params */
+    params?: AnyZodObject
+    /**  Zod schema for the route query params */
+    query?: AnyZodObject
   }
   /**
    * The route handler, has two arguments:
@@ -29,8 +29,8 @@ export interface RouteDefinition<Req = {}, Res = any, Params = {}, Query = {}> {
    */
   handler?: (
     req: ExpressRequest<Params, Res, Req, Query>,
-    res: ExpressRespons<Res>
-  ) => Promise<Res | ExpressRespons<Res>> | Res | ExpressRespons<Res>
+    res: ExpressResponse<Res>
+  ) => Promise<Res | ExpressResponse<Res>> | Res | ExpressResponse<Res>
 }
 
 /** Just http method route types in a string union */
@@ -53,7 +53,7 @@ export interface DefineRoute {
 }
 
 /** Options for defining more than 1 http method for the route */
-export type DefineRoutesOptions = Partial<Record<RouteTypes, ReturnType<DefineRoute>>>
+export type DefineRoutesOptions = Partial<Record<RouteTypes, RouteDefinition<any, any, any, any>>>
 
 /** The defineRoutes function as a type */
 export interface DefineRoutes {

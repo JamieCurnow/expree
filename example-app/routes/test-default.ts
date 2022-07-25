@@ -1,29 +1,46 @@
-/** 
+/**
  * A route file!
  * All of your routes will look similar to this.
  * The path of the route is derived from the path in the directory structure eg:
  * '/test-default'
- * 
+ *
  * This file uses the 'export default' method, where all route types (post, get, etc.) are
  * exported in a default object.
  */
-
 
 // Import helpers from expree
 import { defineRoutes, defineRoute } from '../../src'
 // Or in real life:
 // import { defineRoutes, defineRoute } from 'expree'
 
+import { z } from 'zod'
+
 // Define your types for the routes - type however much you need
 // The defineRoute function takes 4 type args: Request, Response, Params, Query
 
 // Post types
-interface PostReq { userId: string }
-type PostRes = string
+const PostReqSchema = z
+  .object({
+    userId: z.string()
+  })
+  .strict()
+type PostReq = z.infer<typeof PostReqSchema>
+
+const PostResSchema = z.string()
+type PostRes = z.infer<typeof PostResSchema>
 
 // Get types
-interface GetQuery { userId: string }
-interface GetResponse { success: boolean }
+const GetQuerySchema = z
+  .object({
+    userId: z.string()
+  })
+  .strict()
+type GetQuery = z.infer<typeof GetQuerySchema>
+
+const GetResponseSchema = z.object({
+  success: z.boolean()
+})
+type GetResponse = z.infer<typeof GetResponseSchema>
 
 // Use the defineRoutes helper for the default export - this just provides Types
 export default defineRoutes({
@@ -40,17 +57,14 @@ export default defineRoutes({
     // 'body' | 'params' | 'query'
     // Each key should be an object map of [keyToTest: string]: Joi.Schema
     // Access to joi is available through the validate funtion as the first arg
-    validate: (joi) => ({
-      body: {
-        // The below will validate that req.body.userId is a string and is required
-        userId: joi.string().required()
-      }
+    validate: () => ({
+      body: PostReqSchema
     }),
     // Write a handler for the request.
     // This should always be an async function and you have access to express'
     // req: Request and res: Response objects.
     async handler(req, res) {
-      // Perform your request logic here. 
+      // Perform your request logic here.
       // Note that we have type safety based on our defined PostReq and PostRes above
       const { userId } = req.body // string!
 
@@ -70,11 +84,9 @@ export default defineRoutes({
   }),
 
   // Here's an example get request with a query
-  get: defineRoute<{}, GetResponse, {}, GetQuery>({
-    validate: (joi) => ({
-      query: {
-        userId: joi.string().required()
-      }
+  get: defineRoute<undefined, GetResponse, undefined, GetQuery>({
+    validate: () => ({
+      query: GetQuerySchema
     }),
     async handler(req) {
       const { userId } = req.query // string
