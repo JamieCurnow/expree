@@ -1,38 +1,21 @@
 import { defineRoute } from '../../src'
 import { z } from 'zod'
-import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi'
-extendZodWithOpenApi(z)
 
-const PostBodySchema = z
-  .object({
-    /** The uid of the doc */
-    uid: z.string().openapi({
-      example: '409124908118321',
-      description: 'The uid of the doc'
-    }),
-    /** The users first name */
-    firstName: z.string().openapi({
-      example: 'Bob',
-      description: 'The users first name'
-    }),
-    /** The users last name */
-    lastName: z.string().optional().openapi({
-      example: 'Bobson',
-      description: 'The users last name'
-    }),
-    /** The users height in cm */
-    height: z.number().optional().openapi({
-      example: 172,
-      description: 'The users height in cm'
-    }),
-    /** Is the user a user? */
-    isUser: z.boolean().openapi({
-      description: 'Is the user a user?'
-    })
-  })
-  .strict()
+const UserSchema = z.object({
+  /** The user's email address - should be the same as their auth account */
+  email: z.string().email(),
 
-type PostBody = z.infer<typeof PostBodySchema>
+  /** Has the user verified their email? */
+  emailVerified: z.boolean(),
+
+  /** The user's first name */
+  firstName: z.string().optional(),
+
+  /** The user's last name */
+  lastName: z.string().optional()
+})
+
+type User = z.infer<typeof UserSchema>
 
 const ResSchema = z.string().openapi({
   description: 'The string "Ok"',
@@ -40,35 +23,31 @@ const ResSchema = z.string().openapi({
 })
 type Res = z.infer<typeof ResSchema>
 
-export const post = defineRoute<PostBody, Res>({
-  validate: () => {
+export const post = defineRoute<User, Res>({
+  validate: (z) => {
     return {
-      body: PostBodySchema
+      body: z.object(UserSchema.shape)
     }
   },
-  swaggerZod(registry) {
-    const PostBodyRegistrySchema = registry.register('PostBody', z.object(PostBodySchema.shape))
-    const ResRegistrySchema = registry.register('Res', ResSchema)
-
+  swaggerZod(registry, meta) {
     registry.registerPath({
-      method: 'post',
-      path: '/test-post-validation',
-      description: 'Post a `PostBody` object to test the Zod validation',
+      ...meta,
+      description: 'Post a `User` object to test the Zod validation',
       summary: 'Test post body validation',
       request: {
-        body: PostBodyRegistrySchema.openapi({ description: 'The post body object' })
+        body: UserSchema.openapi({ description: 'The user input body object' })
       },
       responses: {
         200: {
           mediaType: 'application/json',
-          schema: ResRegistrySchema.openapi({ description: 'The string "ok"' })
+          schema: ResSchema.openapi({ description: 'The string "ok"' })
         }
       }
     })
   },
   async handler(req, res) {
-    const { isUser } = req.body
-    console.log({ isUser })
+    // const { isUser } = req.body
+    console.log(req.body)
     return 'Ok'
   }
 })

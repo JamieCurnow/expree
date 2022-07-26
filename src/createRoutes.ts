@@ -109,17 +109,7 @@ export const createRoutes = async (app: Express, options?: CreateRoutesOption | 
   })
 
   // these are the supported route methods
-  const supportedKeys: RouteTypes[] = [
-    'delete',
-    'get',
-    'post',
-    'put',
-    'options',
-    'head',
-    'connect',
-    'trace',
-    'patch'
-  ]
+  const supportedKeys: RouteTypes[] = ['get', 'post', 'put', 'delete', 'patch']
 
   // loop over the paths
   sortedFilePaths.forEach((p) => {
@@ -142,7 +132,7 @@ export const createRoutes = async (app: Express, options?: CreateRoutesOption | 
         //if the route has swagger docs add it to the registry
         if (typeof route.swaggerZod === 'function') {
           if (p.registry) {
-            route.swaggerZod(p.registry)
+            route.swaggerZod(p.registry, { path: routePath, method: key })
           } else {
             console.error(
               `route.swaggerZod was defined for path "${routePath}" but no generateSwaggerDocument function was found in the createRoutes option`

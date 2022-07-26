@@ -59,13 +59,17 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
         to[j] = from[i];
     return to;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createRoutes = void 0;
+var zod_to_openapi_1 = require("@asteasolutions/zod-to-openapi");
 var path = __importStar(require("path"));
 var getFilePaths_1 = require("./getFilePaths");
 var makeRoutePathFromFilePath_1 = require("./makeRoutePathFromFilePath");
 var parseRouteHandlers_1 = require("./parseRouteHandlers");
-var validationErrorHandler_1 = require("./validationErrorHandler");
+var swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 var getRoutesDirectories = function (opts) {
     var _a;
     // the absolute root dir of the app
@@ -78,7 +82,8 @@ var getRoutesDirectories = function (opts) {
             routesDirectory: routesDirectory,
             routePrefix: x.routePrefix || '/',
             // get the postix directory so it works in windows and unix
-            postixDir: routesDirectory.split(path.sep).join(path.posix.sep)
+            postixDir: routesDirectory.split(path.sep).join(path.posix.sep),
+            registry: x.swaggerRegistry
         };
     });
 };
@@ -96,6 +101,12 @@ var createRoutes = function (app, options) { return __awaiter(void 0, void 0, vo
                 else {
                     optionsArray = [{ routesDirectory: 'routes', routePrefix: '/' }];
                 }
+                // Add a swagger registry to each options
+                optionsArray.forEach(function (option) {
+                    if (typeof option.generateSwaggerDocument === 'function') {
+                        option.swaggerRegistry = new zod_to_openapi_1.OpenAPIRegistry();
+                    }
+                });
                 directories = getRoutesDirectories(optionsArray);
                 return [4 /*yield*/, Promise.all(directories.map(function (x) { return __awaiter(void 0, void 0, void 0, function () {
                         var filePaths;
@@ -108,7 +119,8 @@ var createRoutes = function (app, options) { return __awaiter(void 0, void 0, vo
                                             routesDirectory: x.routesDirectory,
                                             routePrefix: x.routePrefix,
                                             filePath: path,
-                                            postixDir: x.postixDir
+                                            postixDir: x.postixDir,
+                                            registry: x.registry
                                         }); })];
                             }
                         });
@@ -121,17 +133,7 @@ var createRoutes = function (app, options) { return __awaiter(void 0, void 0, vo
                     var bIsDynamic = b.filePath.includes(':') || b.filePath.includes('_');
                     return aIsDynamic && bIsDynamic ? 0 : aIsDynamic ? 1 : -1;
                 });
-                supportedKeys = [
-                    'delete',
-                    'get',
-                    'post',
-                    'put',
-                    'options',
-                    'head',
-                    'connect',
-                    'trace',
-                    'patch'
-                ];
+                supportedKeys = ['get', 'post', 'put', 'delete', 'patch'];
                 // loop over the paths
                 sortedFilePaths.forEach(function (p) {
                     // make the route path from the file path
@@ -148,13 +150,29 @@ var createRoutes = function (app, options) { return __awaiter(void 0, void 0, vo
                         if (route) {
                             // parse the handlers
                             var handlers = parseRouteHandlers_1.parseRouteHandlers(route);
+                            //if the route has swagger docs add it to the registry
+                            if (typeof route.swaggerZod === 'function') {
+                                if (p.registry) {
+                                    route.swaggerZod(p.registry, { path: routePath, method: key });
+                                }
+                                else {
+                                    console.error("route.swaggerZod was defined for path \"" + routePath + "\" but no generateSwaggerDocument function was found in the createRoutes option");
+                                }
+                            }
                             // add them to express
                             app[key].apply(app, __spreadArray([routePath], handlers));
                         }
                     });
                 });
-                // set up the validation error handling so it returns nicer errors
-                app.use(validationErrorHandler_1.validationErrorHandler);
+                optionsArray.forEach(function (option) {
+                    if (typeof option.generateSwaggerDocument === 'function' && option.swaggerRegistry) {
+                        console.log(option);
+                        var generator = new zod_to_openapi_1.OpenAPIGenerator(option.swaggerRegistry.definitions);
+                        var document_1 = option.generateSwaggerDocument(generator);
+                        // app.use(option.swaggerDocsPath || '/docs', swaggerUi.serve, swaggerUi.setup(document))
+                        app.use(option.swaggerDocsPath || '/docs', swagger_ui_express_1.default.serveFiles(document_1), swagger_ui_express_1.default.setup(document_1));
+                    }
+                });
                 // return express
                 return [2 /*return*/, app];
         }

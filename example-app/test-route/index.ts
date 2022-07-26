@@ -35,13 +35,11 @@ const ResSchema = z.string().openapi({
 })
 type Res = z.infer<typeof ResSchema>
 
-const QuerySchema = z
-  .object({
-    something: z.string().openapi({
-      description: 'The query param `something`'
-    })
+const QuerySchema = z.object({
+  something: z.string().openapi({
+    description: 'The query param `something`'
   })
-  .strict()
+})
 
 type Query = z.infer<typeof QuerySchema>
 
@@ -51,24 +49,19 @@ export const post = defineRoute<ReqBody, Res, {}, Query>({
     query: QuerySchema
   }),
 
-  swaggerZod(registry) {
-    const ReqBodyRegistrySchema = registry.register('ReqBody', z.object(ReqBodySchema.shape))
-    const ResRegistrySchema = registry.register('Res', ResSchema)
-    const QuerySchemaRegistrySchema = registry.register('QuerySchema', z.object(QuerySchema.shape))
-
+  swaggerZod(registry, meta) {
     registry.registerPath({
-      method: 'post',
-      path: '/test-route',
+      ...meta,
       description: 'Post a `ReqBody` object to test the Zod validation',
       summary: 'Test post body validation',
       request: {
-        body: ReqBodyRegistrySchema.openapi({ description: 'The req body object' }),
-        query: QuerySchemaRegistrySchema.openapi({ description: 'The query params for the request' })
+        body: ReqBodySchema.openapi({ description: 'The req body object' }),
+        query: QuerySchema.openapi({ description: 'The query params for the request' })
       },
       responses: {
         200: {
           mediaType: 'application/json',
-          schema: ResRegistrySchema.openapi({ description: 'The string "ok"' })
+          schema: ResSchema.openapi({ description: 'The string "ok"' })
         }
       }
     })
