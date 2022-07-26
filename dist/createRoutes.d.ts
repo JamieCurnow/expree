@@ -29,6 +29,7 @@ interface CreateRoutesOption {
      * ```
      */
     generateSwaggerDocument?: (generator: OpenAPIGenerator) => ReturnType<OpenAPIGenerator['generateDocument']>;
+    /** The route path that the docs should be hosted at. Defualts to '/docs' */
     swaggerDocsPath?: string;
 }
 /** Create all the routes and register them in the express app */

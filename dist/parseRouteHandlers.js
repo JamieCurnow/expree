@@ -38,10 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseRouteHandlers = void 0;
 var zod_express_middleware_1 = require("zod-express-middleware");
-var zod_1 = require("zod");
-var zod_to_openapi_1 = require("@asteasolutions/zod-to-openapi");
-zod_to_openapi_1.extendZodWithOpenApi(zod_1.z);
-var parseRouteHandlers = function (route) {
+var parseRouteHandlers = function (route, zod) {
     var handler = route.handler, validate = route.validate, middleware = route.middleware;
     // Error if no handler
     if (!handler)
@@ -50,7 +47,7 @@ var parseRouteHandlers = function (route) {
     var handlers = [];
     // Add validation middleware first
     if (typeof validate === 'function') {
-        var validationObj = validate(zod_1.z);
+        var validationObj = validate(zod);
         var validationHandler = zod_express_middleware_1.validateRequest(validationObj);
         handlers.push(validationHandler);
     }

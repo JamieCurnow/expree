@@ -12,7 +12,7 @@ export interface RouteDefinition<Req = {}, Res = any, Params = {}, Query = {}> {
    */
   middleware?: RequestHandler[]
   /**
-   * Add Zod validation to the route
+   * Add Zod validation to the route. Uses https://github.com/Aquila169/zod-express-middleware
    *
    * @example Write the object from scratch
    *
@@ -56,7 +56,7 @@ export interface RouteDefinition<Req = {}, Res = any, Params = {}, Query = {}> {
    * Use the registry to create a swagger doc for this endpoint.
    * See: https://github.com/asteasolutions/zod-to-openapi#defining-routes
    */
-  swaggerZod?: (registry: OpenAPIRegistry, routeMeta: RouteMeta) => void
+  swaggerZod?: (registry: OpenAPIRegistry, routeMeta: RouteMeta, zod: typeof z) => void
 }
 
 /** Inferred meta data about this route, including path, method etc */

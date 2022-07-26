@@ -6,6 +6,9 @@ import { makeRoutePathFromFilePath } from './makeRoutePathFromFilePath'
 import { parseRouteHandlers } from './parseRouteHandlers'
 import { DefineRoutesOptions, RouteTypes } from './types'
 import swaggerUi from 'swagger-ui-express'
+import { z } from 'zod'
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi'
+extendZodWithOpenApi(z)
 
 /** Options for route locations and prefixes */
 interface CreateRoutesOption {
@@ -14,10 +17,12 @@ interface CreateRoutesOption {
    * Can be an absolute path or a relative path to the app root.
    */
   routesDirectory: string
+
   /**
    * The prefix to add to all routes. Defaults to '/'.
    */
   routePrefix?: string
+
   /**
    * The swagger docs definition generator. Uses: https://github.com/asteasolutions/zod-to-openapi
    * @example
@@ -36,6 +41,8 @@ interface CreateRoutesOption {
    * ```
    */
   generateSwaggerDocument?: (generator: OpenAPIGenerator) => ReturnType<OpenAPIGenerator['generateDocument']>
+
+  /** The route path that the docs should be hosted at. Defualts to '/docs' */
   swaggerDocsPath?: string
 }
 
@@ -128,11 +135,11 @@ export const createRoutes = async (app: Express, options?: CreateRoutesOption | 
       const route = routes[key]
       if (route) {
         // parse the handlers
-        const handlers = parseRouteHandlers(route)
+        const handlers = parseRouteHandlers(route, z)
         //if the route has swagger docs add it to the registry
         if (typeof route.swaggerZod === 'function') {
           if (p.registry) {
-            route.swaggerZod(p.registry, { path: routePath, method: key })
+            route.swaggerZod(p.registry, { path: routePath, method: key }, z)
           } else {
             console.error(
               `route.swaggerZod was defined for path "${routePath}" but no generateSwaggerDocument function was found in the createRoutes option`

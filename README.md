@@ -85,6 +85,40 @@ createRoutes(app, routeDirs).then(() => {
 })
 ```
 
+You can also set up swagger docs in the optoins object by using the `generateSwaggerDocument` function and the `swaggerDocsPath` key. Under the hood this uses https://github.com/asteasolutions/zod-to-openapi.
+
+```ts
+import express from 'express'
+import { createRoutes } from 'expree'
+
+// Normal express stuff
+const app = express()
+
+// Body parser is required for body validation
+app.use(express.json({ limit: '50mb' }))
+
+// Create the routes and then start the server
+createRoutes(app, {
+    routesDirectory: 'routes',
+    routePrefix: '/',
+    generateSwaggerDocument: (generator: OpenAPIGenerator) => {
+      return generator.generateDocument({
+        openapi: '3.0.0',
+        info: {
+          version: '1.0.0',
+          title: 'Test API',
+          description: 'These are the swagger docs!'
+        }
+      })
+    },
+    swaggerDocsPath: '/docs'
+  }).then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}...`)
+  })
+})
+```
+
 ## Route files
 
 The actual files in the route directory need to follow some basic rules in order to properly register routes with express. First they need to either export a defualt export using `defineRoutes()` or they need to export named exports using `defineRoute()`. Note the difference in those two `defineRoutes / defineRoute`.
@@ -137,6 +171,7 @@ The `createRoutes` function has a required first argument of the express app.
 It's second argument is optional and can be either a `CreateRoutesOption` object or an array of `CreateRoutesOption` objects as defined below:
 
 ```ts
+/** Options for route locations and prefixes */
 interface CreateRoutesOption {
   /**
    * The directory to find all of the routes. Defaults to 'routes'.
@@ -147,6 +182,26 @@ interface CreateRoutesOption {
    * The prefix to add to all routes. Defaults to '/'.
    */
   routePrefix?: string
+  /**
+   * The swagger docs definition generator. Uses: https://github.com/asteasolutions/zod-to-openapi
+   * @example
+   *
+   * ```ts
+   * generateSwaggerDocument(generator) {
+   *   return generator.generateDocument({
+   *    openapi: '3.0.0',
+   *    info: {
+   *      version: '1.0.0',
+   *        title: 'My API',
+   *        description: 'This is the API'
+   *    }
+   *  })
+   * }
+   * ```
+   */
+  generateSwaggerDocument?: (generator: OpenAPIGenerator) => ReturnType<OpenAPIGenerator['generateDocument']>
+  /** The route path that the docs should be hosted at. Defualts to '/docs' */
+  swaggerDocsPath?: string
 }
 ```
 
@@ -164,10 +219,6 @@ export type RouteTypes =
   | 'post'
   | 'put'
   | 'delete'
-  | 'options'
-  | 'head'
-  | 'connect'
-  | 'trace'
   | 'patch'
 ```
 
@@ -210,15 +261,34 @@ export interface RouteDefinition<Req = {}, Res = any, Params = {}, Query = {}> {
    */
   middleware?: RequestHandler[]
   /**
-   * Add Joi validation to the route
+   * Add Zod validation to the route. Uses https://github.com/Aquila169/zod-express-middleware
+   *
+   * @example Write the object from scratch
+   *
+   * ```ts
+   * validate: (z) => {
+   *   return {
+   *    body: z.object({ uid: z.string(), firstName: z.string(), lastName: z.string().optional() })
+   *   }
+   * }
+   * ```
+   *
+   * @example Use existing zod object
+   * ```ts
+   * validate: (z) => {
+   *   return {
+   *    body: z.object(UserInputSchema.shape)
+   *   }
+   * }
+   * ```
    */
-  validate?: (joi: typeof Joi) => {
-    /** Validation for the body */
-    body?: Partial<Record<keyof Req, Joi.Schema>>
-    /** Validation for the route params */
-    params?: Partial<Record<keyof Params, Joi.Schema>>
-    /** Validation for the route query params */
-    query?: Partial<Record<keyof Query, Joi.Schema>>
+  validate?: (zod: typeof z) => {
+    /** Zod schema for the body */
+    body?: AnyZodObject
+    /**  Zod schema for the route params */
+    params?: AnyZodObject
+    /**  Zod schema for the route query params */
+    query?: AnyZodObject
   }
   /**
    * The route handler, has two arguments:
@@ -228,10 +298,18 @@ export interface RouteDefinition<Req = {}, Res = any, Params = {}, Query = {}> {
    */
   handler?: (
     req: ExpressRequest<Params, Res, Req, Query>,
-    res: ExpressRespons<Res>
-  ) => Promise<Res | ExpressRespons<Res>> | Res | ExpressRespons<Res>
+    res: ExpressResponse<Res>
+  ) => Promise<Res | ExpressResponse<Res>> | Res | ExpressResponse<Res>
+
+  /**
+   * Use the registry to create a swagger doc for this endpoint.
+   * See: https://github.com/asteasolutions/zod-to-openapi#defining-routes
+   */
+  swaggerZod?: (registry: OpenAPIRegistry, routeMeta: RouteMeta) => void
 }
 ```
+
+## Middleware
 
 `middleware` is an optional array of express middleware. This is akin to adding middleware to a normal express route.
 
@@ -253,6 +331,8 @@ export const post = defineRoute({
   }
 })
 ```
+
+## Handlers
 
 You may have noticed a hint above as to how you write route handlers with expree - the `handler` key!
 
@@ -290,9 +370,11 @@ export const get = defineRoute({ handler: () => 'Hello world' })
 
 Hopefully you can see how organising your routes in directory structures makes life nice and simple and organised.
 
-The last thing to know about on the `defineRoute()` options is `validate`. This provides `Joi` validation using [`express-validation`](https://www.npmjs.com/package/express-validation).
+## Validation
 
-The `validate` key is a function that gives you access to `joi` as it's only argument. Then you set validation rules for the body, query, params, etc (see the [`express-validation` docs](https://www.npmjs.com/package/express-validation))
+The next thing to know about on the `defineRoute()` options is `validate`. This provides `Zod` validation using [`zod-express-middleware`](https://github.com/Aquila169/zod-express-middleware).
+
+The `validate` key is a function that gives you access to `zod` as it's only argument. Then you can set validation rules for the body, query, params, etc (see the [`zod-express-middleware` docs](https://github.com/Aquila169/zod-express-middleware))
 
 Eg:
 
@@ -300,9 +382,9 @@ Eg:
 import { defineRoute } from 'expree'
 
 export const post = defineRoute({
-  validate: (joi) => ({
+  validate: (zod) => ({
     body: {
-      firstName: joi.string().required()
+      firstName: zod.string()
     }
   }),
 
@@ -319,17 +401,13 @@ You can then abstract these validations so that you can use them around your app
 Imagine defining a user input validation:
 
 ```ts
-import { Joi } from 'joi'
+import { z } from 'zod'
 
-export const userInputValidation = (joi: Joi.Root) => {
-  return {
-    body: {
-      firstName: joi.string().required(),
-      lastName: joi.string().required(),
-      dateOfBirth: joi.string() // not required
-    }
-  }
-}
+export const userInputValidation = z.object({
+  firstName: z.string(),
+  lastName: z.string(),
+  dateOfBirth: z.string().optional()
+})
 ```
 
 Then use that validation in different routes around your app:
@@ -341,12 +419,109 @@ import { defineRoute } from 'expree'
 import { userInputValidation } from '../utils/validation/userInputValidation`
 
 export const post = defineRoute({
-  validate: userInputValidation,
+  validate: (zod) => ({
+    body: zod.object(userInputValidation.shape)
+  }),
 
   async handler(req, res) {
     const { firstName } = req.body
     const newUser = await updateUser({ firstName })
     return newUser
+  }
+})
+```
+
+## Documentation
+
+The last thing to know about is the `swaggerZod` key in the `defineRoute` object. This key allows you to add a swagger doc for the route. Under the hood we're using [zod-to-openapi](https://github.com/asteasolutions/zod-to-openapi#defining-routes) to make the json swagger document definition and [swagger-ui-express](https://github.com/scottie1984/swagger-ui-express) to generate the docs and serve them at a given route.
+
+**IMPORTANT** - for this to work, you must add a `generateSwaggerDocument` function to the main `createRoutes` optoins in order to generate a 'registery' to add documentation to for the route and define the root level swagger docs config. eg:
+
+```ts
+createRoutes(app, {
+    routesDirectory: 'routes',
+    routePrefix: '/',
+    generateSwaggerDocument: (generator: OpenAPIGenerator) => {
+      return generator.generateDocument({
+        openapi: '3.0.0',
+        info: {
+          version: '1.0.0',
+          title: 'Test API',
+          description: 'These are the swagger docs!'
+        }
+      })
+    },
+    swaggerDocsPath: '/docs'
+  }).then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}...`)
+  })
+})
+```
+
+Then in your `defineRoute` options you can add a `swaggerZod` key which should be a function. The function gets access to the `registery` as it's first argument ([see docs](https://github.com/asteasolutions/zod-to-openapi#defining-routes)), and some meta about the route as it's second argument `RouteMeta`:
+
+```ts
+/** Inferred meta data about this route, including path, method etc */
+export interface RouteMeta {
+  path: string
+  method: RouteTypes
+}
+```
+
+It also gives you access to zod as a third arument.
+
+Here is the `swaggerZod` functoin signature:
+
+```ts
+swaggerZod?: (registry: OpenAPIRegistry, routeMeta: RouteMeta, zod: typeof z) => void
+```
+
+This allows you to easily add to the swagger docs for this route:
+
+```ts
+// /routes/user/update
+
+import { defineRoute } from 'expree'
+import { z } from 'zod'
+
+const UserSchema = z.object({
+  uid: z.string().required(),
+  email: z.string().required(),
+  firstName: z.string().required()
+})
+
+const UserInputSchema = UserSchema.pick({ firstName: true })
+
+type User = z.infer<typeof UserSchema>
+type UserInput = z.infer<typeof UserInputSchema>
+
+export const post = defineRoute<UserInput, User>({
+  validate: (zod) => ({
+    body: UserInputSchema
+  }),
+
+  async handler(req, res) {
+    const { firstName } = req.body
+    const newUser = await updateUser({ firstName })
+    return newUser
+  },
+
+  swaggerZod(registry, meta, zod) {
+    // const { path, method } = meta
+    registry.registerPath({
+      ...meta,
+      description: 'Update a user',
+      request: {
+        body: UserInputSchema.openapi({ description: 'The user input object' })
+      },
+      responses: {
+        200: {
+          mediaType: 'application/json',
+          schema: UserSchema.openapi({ description: 'The new user object' })
+        }
+      }
+    })
   }
 })
 ```

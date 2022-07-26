@@ -70,6 +70,9 @@ var getFilePaths_1 = require("./getFilePaths");
 var makeRoutePathFromFilePath_1 = require("./makeRoutePathFromFilePath");
 var parseRouteHandlers_1 = require("./parseRouteHandlers");
 var swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
+var zod_1 = require("zod");
+var zod_to_openapi_2 = require("@asteasolutions/zod-to-openapi");
+zod_to_openapi_2.extendZodWithOpenApi(zod_1.z);
 var getRoutesDirectories = function (opts) {
     var _a;
     // the absolute root dir of the app
@@ -149,11 +152,11 @@ var createRoutes = function (app, options) { return __awaiter(void 0, void 0, vo
                         var route = routes[key];
                         if (route) {
                             // parse the handlers
-                            var handlers = parseRouteHandlers_1.parseRouteHandlers(route);
+                            var handlers = parseRouteHandlers_1.parseRouteHandlers(route, zod_1.z);
                             //if the route has swagger docs add it to the registry
                             if (typeof route.swaggerZod === 'function') {
                                 if (p.registry) {
-                                    route.swaggerZod(p.registry, { path: routePath, method: key });
+                                    route.swaggerZod(p.registry, { path: routePath, method: key }, zod_1.z);
                                 }
                                 else {
                                     console.error("route.swaggerZod was defined for path \"" + routePath + "\" but no generateSwaggerDocument function was found in the createRoutes option");
