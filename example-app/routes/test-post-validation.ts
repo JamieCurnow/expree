@@ -1,36 +1,53 @@
 import { defineRoute } from '../../src'
 import { z } from 'zod'
 
-const PostBodySchema = z
-  .object({
-    /** The uid of the doc */
-    uid: z.string(),
-    /** The users first name */
-    firstName: z.string(),
-    /** The users last name */
-    lastName: z.string().optional(),
-    /** The users height in cm */
-    height: z.number().optional(),
-    /** Is the user a user? */
-    isUser: z.boolean()
-  })
-  .strict()
+const UserSchema = z.object({
+  /** The user's email address - should be the same as their auth account */
+  email: z.string().email(),
 
-type PostBody = z.infer<typeof PostBodySchema>
+  /** Has the user verified their email? */
+  emailVerified: z.boolean(),
 
-const ResSchema = z.string()
+  /** The user's first name */
+  firstName: z.string().optional(),
+
+  /** The user's last name */
+  lastName: z.string().optional()
+})
+
+type User = z.infer<typeof UserSchema>
+
+const ResSchema = z.string().openapi({
+  description: 'The string "Ok"',
+  example: 'Ok'
+})
 type Res = z.infer<typeof ResSchema>
 
-export const post = defineRoute<PostBody, Res>({
-  validate: () => {
+export const post = defineRoute<User, Res>({
+  validate: (z) => {
     return {
-      body: PostBodySchema
+      body: z.object(UserSchema.shape)
     }
   },
-
+  swaggerZod(registry, meta) {
+    registry.registerPath({
+      ...meta,
+      description: 'Post a `User` object to test the Zod validation',
+      summary: 'Test post body validation',
+      request: {
+        body: UserSchema.openapi({ description: 'The user input body object' })
+      },
+      responses: {
+        200: {
+          mediaType: 'application/json',
+          schema: ResSchema.openapi({ description: 'The string "ok"' })
+        }
+      }
+    })
+  },
   async handler(req, res) {
-    const { isUser } = req.body
-    console.log({ isUser })
+    // const { isUser } = req.body
+    console.log(req.body)
     return 'Ok'
   }
 })

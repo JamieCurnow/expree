@@ -1,5 +1,6 @@
-import { RequestHandler, Request as ExpressRequest, Response as ExpressRespons } from 'express';
-import Joi from 'joi';
+import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
+import { RequestHandler, Request as ExpressRequest, Response as ExpressResponse } from 'express';
+import { AnyZodObject, z } from 'zod';
 /**
  * The definition of a single route.
  */
@@ -9,15 +10,34 @@ export interface RouteDefinition<Req = {}, Res = any, Params = {}, Query = {}> {
      */
     middleware?: RequestHandler[];
     /**
-     * Add Joi validation to the route
+     * Add Zod validation to the route
+     *
+     * @example Write the object from scratch
+     *
+     * ```ts
+     * validate: (z) => {
+     *   return {
+     *    body: z.object({ uid: z.string(), firstName: z.string(), lastName: z.string().optional() })
+     *   }
+     * }
+     * ```
+     *
+     * @example Use existing zod object
+     * ```ts
+     * validate: (z) => {
+     *   return {
+     *    body: z.object(UserInputSchema.shape)
+     *   }
+     * }
+     * ```
      */
-    validate?: (joi: typeof Joi) => {
-        /** Validation for the body */
-        body?: Partial<Record<keyof Req, Joi.Schema>>;
-        /** Validation for the route params */
-        params?: Partial<Record<keyof Params, Joi.Schema>>;
-        /** Validation for the route query params */
-        query?: Partial<Record<keyof Query, Joi.Schema>>;
+    validate?: (zod: typeof z) => {
+        /** Zod schema for the body */
+        body?: AnyZodObject;
+        /**  Zod schema for the route params */
+        params?: AnyZodObject;
+        /**  Zod schema for the route query params */
+        query?: AnyZodObject;
     };
     /**
      * The route handler, has two arguments:
@@ -25,16 +45,26 @@ export interface RouteDefinition<Req = {}, Res = any, Params = {}, Query = {}> {
      * req: The express request object
      * res: The express response object
      */
-    handler?: (req: ExpressRequest<Params, Res, Req, Query>, res: ExpressRespons<Res>) => Promise<Res | ExpressRespons<Res>> | Res | ExpressRespons<Res>;
+    handler?: (req: ExpressRequest<Params, Res, Req, Query>, res: ExpressResponse<Res>) => Promise<Res | ExpressResponse<Res>> | Res | ExpressResponse<Res>;
+    /**
+     * Use the registry to create a swagger doc for this endpoint.
+     * See: https://github.com/asteasolutions/zod-to-openapi#defining-routes
+     */
+    swaggerZod?: (registry: OpenAPIRegistry, routeMeta: RouteMeta) => void;
+}
+/** Inferred meta data about this route, including path, method etc */
+export interface RouteMeta {
+    path: string;
+    method: RouteTypes;
 }
 /** Just http method route types in a string union */
-export declare type RouteTypes = 'get' | 'post' | 'put' | 'delete' | 'options' | 'head' | 'connect' | 'trace' | 'patch';
+export declare type RouteTypes = 'get' | 'post' | 'put' | 'delete' | 'patch';
 /** A defined route */
 export interface DefineRoute {
     <Req = {}, Res = any, Params = {}, Query = {}>(opts: RouteDefinition<Req, Res, Params, Query>): RouteDefinition<Req, Res, Params, Query>;
 }
 /** Options for defining more than 1 http method for the route */
-export declare type DefineRoutesOptions = Partial<Record<RouteTypes, ReturnType<DefineRoute>>>;
+export declare type DefineRoutesOptions = Partial<Record<RouteTypes, RouteDefinition<any, any, any, any>>>;
 /** The defineRoutes function as a type */
 export interface DefineRoutes {
     (opts: DefineRoutesOptions): DefineRoutesOptions;

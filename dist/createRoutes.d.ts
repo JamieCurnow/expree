@@ -1,3 +1,4 @@
+import { OpenAPIGenerator } from '@asteasolutions/zod-to-openapi';
 import { Express } from 'express';
 /** Options for route locations and prefixes */
 interface CreateRoutesOption {
@@ -10,6 +11,25 @@ interface CreateRoutesOption {
      * The prefix to add to all routes. Defaults to '/'.
      */
     routePrefix?: string;
+    /**
+     * The swagger docs definition generator. Uses: https://github.com/asteasolutions/zod-to-openapi
+     * @example
+     *
+     * ```ts
+     * generateSwaggerDocument(generator) {
+     *   return generator.generateDocument({
+     *    openapi: '3.0.0',
+     *    info: {
+     *      version: '1.0.0',
+     *        title: 'My API',
+     *        description: 'This is the API'
+     *    }
+     *  })
+     * }
+     * ```
+     */
+    generateSwaggerDocument?: (generator: OpenAPIGenerator) => ReturnType<OpenAPIGenerator['generateDocument']>;
+    swaggerDocsPath?: string;
 }
 /** Create all the routes and register them in the express app */
 export declare const createRoutes: (app: Express, options?: CreateRoutesOption | CreateRoutesOption[] | undefined) => Promise<Express>;

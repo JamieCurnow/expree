@@ -1,6 +1,7 @@
+import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi'
 import { RequestHandler, Request as ExpressRequest, Response as ExpressResponse } from 'express'
 
-import { AnyZodObject } from 'zod'
+import { AnyZodObject, z } from 'zod'
 
 /**
  * The definition of a single route.
@@ -12,8 +13,27 @@ export interface RouteDefinition<Req = {}, Res = any, Params = {}, Query = {}> {
   middleware?: RequestHandler[]
   /**
    * Add Zod validation to the route
+   *
+   * @example Write the object from scratch
+   *
+   * ```ts
+   * validate: (z) => {
+   *   return {
+   *    body: z.object({ uid: z.string(), firstName: z.string(), lastName: z.string().optional() })
+   *   }
+   * }
+   * ```
+   *
+   * @example Use existing zod object
+   * ```ts
+   * validate: (z) => {
+   *   return {
+   *    body: z.object(UserInputSchema.shape)
+   *   }
+   * }
+   * ```
    */
-  validate?: () => {
+  validate?: (zod: typeof z) => {
     /** Zod schema for the body */
     body?: AnyZodObject
     /**  Zod schema for the route params */
@@ -31,19 +51,22 @@ export interface RouteDefinition<Req = {}, Res = any, Params = {}, Query = {}> {
     req: ExpressRequest<Params, Res, Req, Query>,
     res: ExpressResponse<Res>
   ) => Promise<Res | ExpressResponse<Res>> | Res | ExpressResponse<Res>
+
+  /**
+   * Use the registry to create a swagger doc for this endpoint.
+   * See: https://github.com/asteasolutions/zod-to-openapi#defining-routes
+   */
+  swaggerZod?: (registry: OpenAPIRegistry, routeMeta: RouteMeta) => void
+}
+
+/** Inferred meta data about this route, including path, method etc */
+export interface RouteMeta {
+  path: string
+  method: RouteTypes
 }
 
 /** Just http method route types in a string union */
-export type RouteTypes =
-  | 'get'
-  | 'post'
-  | 'put'
-  | 'delete'
-  | 'options'
-  | 'head'
-  | 'connect'
-  | 'trace'
-  | 'patch'
+export type RouteTypes = 'get' | 'post' | 'put' | 'delete' | 'patch'
 
 /** A defined route */
 export interface DefineRoute {

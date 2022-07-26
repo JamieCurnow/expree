@@ -35,13 +35,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.parseRouteHandlers = void 0;
-var express_validation_1 = require("express-validation");
-var joi_1 = __importDefault(require("joi"));
+var zod_express_middleware_1 = require("zod-express-middleware");
+var zod_1 = require("zod");
+var zod_to_openapi_1 = require("@asteasolutions/zod-to-openapi");
+zod_to_openapi_1.extendZodWithOpenApi(zod_1.z);
 var parseRouteHandlers = function (route) {
     var handler = route.handler, validate = route.validate, middleware = route.middleware;
     // Error if no handler
@@ -51,13 +50,8 @@ var parseRouteHandlers = function (route) {
     var handlers = [];
     // Add validation middleware first
     if (typeof validate === 'function') {
-        var validationObj = validate(joi_1.default);
-        var validationSchema = {
-            body: validationObj.body ? joi_1.default.object(validationObj.body) : undefined,
-            query: validationObj.query ? joi_1.default.object(validationObj.query) : undefined,
-            params: validationObj.params ? joi_1.default.object(validationObj.params) : undefined
-        };
-        var validationHandler = express_validation_1.validate(validationSchema, { context: true }, { abortEarly: false });
+        var validationObj = validate(zod_1.z);
+        var validationHandler = zod_express_middleware_1.validateRequest(validationObj);
         handlers.push(validationHandler);
     }
     // Add middleware if any

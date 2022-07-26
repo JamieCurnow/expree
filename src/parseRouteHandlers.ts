@@ -3,6 +3,10 @@ import { validateRequest } from 'zod-express-middleware'
 
 import { RouteDefinition } from './types'
 
+import { z } from 'zod'
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi'
+extendZodWithOpenApi(z)
+
 export const parseRouteHandlers = (route: RouteDefinition): RequestHandler[] => {
   const { handler, validate, middleware } = route
 
@@ -14,7 +18,7 @@ export const parseRouteHandlers = (route: RouteDefinition): RequestHandler[] => 
 
   // Add validation middleware first
   if (typeof validate === 'function') {
-    const validationObj = validate()
+    const validationObj = validate(z)
 
     const validationHandler = validateRequest(validationObj)
 
