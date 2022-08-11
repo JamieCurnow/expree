@@ -1,7 +1,7 @@
 import { OpenAPIGenerator } from '@asteasolutions/zod-to-openapi';
 import { Express } from 'express';
 /** Options for route locations and prefixes */
-interface CreateRoutesOption {
+export interface CreateRoutesOption {
     /**
      * The directory to find all of the routes. Defaults to 'routes'.
      * Can be an absolute path or a relative path to the app root.
@@ -34,4 +34,3 @@ interface CreateRoutesOption {
 }
 /** Create all the routes and register them in the express app */
 export declare const createRoutes: (app: Express, options?: CreateRoutesOption | CreateRoutesOption[] | undefined) => Promise<Express>;
-export {};
