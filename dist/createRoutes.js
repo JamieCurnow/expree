@@ -169,7 +169,6 @@ var createRoutes = function (app, options) { return __awaiter(void 0, void 0, vo
                 });
                 optionsArray.forEach(function (option) {
                     if (typeof option.generateSwaggerDocument === 'function' && option.swaggerRegistry) {
-                        console.log(option);
                         var generator = new zod_to_openapi_1.OpenAPIGenerator(option.swaggerRegistry.definitions);
                         var document_1 = option.generateSwaggerDocument(generator);
                         // app.use(option.swaggerDocsPath || '/docs', swaggerUi.serve, swaggerUi.setup(document))
