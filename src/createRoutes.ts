@@ -11,7 +11,7 @@ import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi'
 extendZodWithOpenApi(z)
 
 /** Options for route locations and prefixes */
-interface CreateRoutesOption {
+export interface CreateRoutesOption {
   /**
    * The directory to find all of the routes. Defaults to 'routes'.
    * Can be an absolute path or a relative path to the app root.
