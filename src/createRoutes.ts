@@ -154,7 +154,7 @@ export const createRoutes = async (app: Express, options?: CreateRoutesOption | 
 
   optionsArray.forEach((option) => {
     if (typeof option.generateSwaggerDocument === 'function' && option.swaggerRegistry) {
-      const generator = new OpenAPIGenerator(option.swaggerRegistry.definitions)
+      const generator = new OpenAPIGenerator(option.swaggerRegistry.definitions, "3.1.0")
       const document = option.generateSwaggerDocument(generator)
       // app.use(option.swaggerDocsPath || '/docs', swaggerUi.serve, swaggerUi.setup(document))
       app.use(option.swaggerDocsPath || '/docs', swaggerUi.serveFiles(document), swaggerUi.setup(document))

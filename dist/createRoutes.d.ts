@@ -33,4 +33,4 @@ export interface CreateRoutesOption {
     swaggerDocsPath?: string;
 }
 /** Create all the routes and register them in the express app */
-export declare const createRoutes: (app: Express, options?: CreateRoutesOption | CreateRoutesOption[] | undefined) => Promise<Express>;
+export declare const createRoutes: (app: Express, options?: CreateRoutesOption | CreateRoutesOption[]) => Promise<Express>;
