@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -33,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -54,10 +58,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __spreadArray = (this && this.__spreadArray) || function (to, from) {
-    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-        to[j] = from[i];
-    return to;
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
 };
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -72,7 +80,7 @@ var parseRouteHandlers_1 = require("./parseRouteHandlers");
 var swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 var zod_1 = require("zod");
 var zod_to_openapi_2 = require("@asteasolutions/zod-to-openapi");
-zod_to_openapi_2.extendZodWithOpenApi(zod_1.z);
+(0, zod_to_openapi_2.extendZodWithOpenApi)(zod_1.z);
 var getRoutesDirectories = function (opts) {
     var _a;
     // the absolute root dir of the app
@@ -115,7 +123,7 @@ var createRoutes = function (app, options) { return __awaiter(void 0, void 0, vo
                         var filePaths;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
-                                case 0: return [4 /*yield*/, getFilePaths_1.getFilePaths(x.routesDirectory)];
+                                case 0: return [4 /*yield*/, (0, getFilePaths_1.getFilePaths)(x.routesDirectory)];
                                 case 1:
                                     filePaths = _a.sent();
                                     return [2 /*return*/, filePaths.map(function (path) { return ({
@@ -140,7 +148,7 @@ var createRoutes = function (app, options) { return __awaiter(void 0, void 0, vo
                 // loop over the paths
                 sortedFilePaths.forEach(function (p) {
                     // make the route path from the file path
-                    var routePath = makeRoutePathFromFilePath_1.makeRoutePathFromFilePath(p.filePath, p.postixDir, p.routePrefix);
+                    var routePath = (0, makeRoutePathFromFilePath_1.makeRoutePathFromFilePath)(p.filePath, p.postixDir, p.routePrefix);
                     // require the file
                     var definition = require(p.filePath);
                     // see if the export is the default export
@@ -152,24 +160,24 @@ var createRoutes = function (app, options) { return __awaiter(void 0, void 0, vo
                         var route = routes[key];
                         if (route) {
                             // parse the handlers
-                            var handlers = parseRouteHandlers_1.parseRouteHandlers(route, zod_1.z);
+                            var handlers = (0, parseRouteHandlers_1.parseRouteHandlers)(route, zod_1.z);
                             //if the route has swagger docs add it to the registry
                             if (typeof route.swaggerZod === 'function') {
                                 if (p.registry) {
                                     route.swaggerZod(p.registry, { path: routePath, method: key }, zod_1.z);
                                 }
                                 else {
-                                    console.error("route.swaggerZod was defined for path \"" + routePath + "\" but no generateSwaggerDocument function was found in the createRoutes option");
+                                    console.error("route.swaggerZod was defined for path \"".concat(routePath, "\" but no generateSwaggerDocument function was found in the createRoutes option"));
                                 }
                             }
                             // add them to express
-                            app[key].apply(app, __spreadArray([routePath], handlers));
+                            app[key].apply(app, __spreadArray([routePath], handlers, false));
                         }
                     });
                 });
                 optionsArray.forEach(function (option) {
                     if (typeof option.generateSwaggerDocument === 'function' && option.swaggerRegistry) {
-                        var generator = new zod_to_openapi_1.OpenAPIGenerator(option.swaggerRegistry.definitions);
+                        var generator = new zod_to_openapi_1.OpenAPIGenerator(option.swaggerRegistry.definitions, "3.1.0");
                         var document_1 = option.generateSwaggerDocument(generator);
                         // app.use(option.swaggerDocsPath || '/docs', swaggerUi.serve, swaggerUi.setup(document))
                         app.use(option.swaggerDocsPath || '/docs', swagger_ui_express_1.default.serveFiles(document_1), swagger_ui_express_1.default.setup(document_1));

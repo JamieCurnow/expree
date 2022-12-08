@@ -58,13 +58,13 @@ export interface RouteMeta {
     method: RouteTypes;
 }
 /** Just http method route types in a string union */
-export declare type RouteTypes = 'get' | 'post' | 'put' | 'delete' | 'patch';
+export type RouteTypes = 'get' | 'post' | 'put' | 'delete' | 'patch';
 /** A defined route */
 export interface DefineRoute {
     <Req = {}, Res = any, Params = {}, Query = {}>(opts: RouteDefinition<Req, Res, Params, Query>): RouteDefinition<Req, Res, Params, Query>;
 }
 /** Options for defining more than 1 http method for the route */
-export declare type DefineRoutesOptions = Partial<Record<RouteTypes, RouteDefinition<any, any, any, any>>>;
+export type DefineRoutesOptions = Partial<Record<RouteTypes, RouteDefinition<any, any, any, any>>>;
 /** The defineRoutes function as a type */
 export interface DefineRoutes {
     (opts: DefineRoutesOptions): DefineRoutesOptions;

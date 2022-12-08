@@ -1,7 +1,11 @@
 "use strict";
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
 }) : (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     o[k2] = m[k];
@@ -23,7 +27,7 @@ exports.makeRoutePathFromFilePath = exports.cleanRoutePath = void 0;
 var path = __importStar(require("path"));
 /** Remove double and trailing slashes from the route path and make sure it starts with a slash */
 var cleanRoutePath = function (path) {
-    return ("/" + path).replace(/\/+/gm, '/').replace(/\/$/gm, '');
+    return "/".concat(path).replace(/\/+/gm, '/').replace(/\/$/gm, '');
 };
 exports.cleanRoutePath = cleanRoutePath;
 /** Turns the dir path into a route path. Eg. __dirname/user/verify.ts => /user/verify */
@@ -46,8 +50,8 @@ var makeRoutePathFromFilePath = function (filePath, rootDir, routePrefix) {
         .split('/_')
         .join('/:');
     // add the route prefix
-    var routePathPrefixed = "/" + routePrefix + "/" + routePath;
+    var routePathPrefixed = "/".concat(routePrefix, "/").concat(routePath);
     // return the cleaned path
-    return exports.cleanRoutePath(routePathPrefixed);
+    return (0, exports.cleanRoutePath)(routePathPrefixed);
 };
 exports.makeRoutePathFromFilePath = makeRoutePathFromFilePath;
